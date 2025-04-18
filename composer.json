@@ -1,0 +1,9 @@
+{
+    "minimum-stability": "beta",
+    "prefer-stable": true,
+    "require": {
+        "phpoffice/phpspreadsheet": "^4.2",
+        "mammoth/mammoth": "^1.0",
+        "phpoffice/phpword": "^1.3"
+    }
+}
