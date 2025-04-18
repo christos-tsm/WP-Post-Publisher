@@ -30,11 +30,11 @@ class IFX_Post_Publisher {
     const CRON_HOOK    = 'ifx_spp_publish_posts';
 
     public function __construct() {
-        add_action('admin_menu',                    [$this, 'add_admin_menu']);
-        add_action('admin_init',                    [$this, 'register_settings']);
-        add_action('update_option_' . self::OPTION_URL,   [$this, 'reschedule_crons'], 10, 2);
+        add_action('admin_menu', [$this, 'add_admin_menu']);
+        add_action('admin_init', [$this, 'register_settings']);
+        add_action('update_option_' . self::OPTION_URL, [$this, 'reschedule_crons'], 10, 2);
         add_action('update_option_' . self::OPTION_TIMES, [$this, 'reschedule_crons'], 10, 2);
-        add_action(self::CRON_HOOK,                        [$this, 'publish_posts']);
+        add_action(self::CRON_HOOK, [$this, 'publish_posts']);
     }
 
     /* --------------------------------------------------------------------
@@ -451,15 +451,6 @@ class IFX_Post_Publisher {
             $text .= $node->nodeValue;
         }
         return trim(str_replace(["\n", "\t"], ' ', $text));
-    }
-
-    /* --------------------------------------------------------------------
-	 * Path escaping helper
-	 * ------------------------------------------------------------------ */
-    private function escapeJsPath($path) {
-        // Handle Windows paths for Node.js
-        $clean_path = str_replace('\\', '\\\\', $path);
-        return "'$clean_path'";
     }
 
     /* --------------------------------------------------------------------
