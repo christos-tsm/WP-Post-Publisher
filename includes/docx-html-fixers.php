@@ -54,7 +54,7 @@ class ListItemRun extends TextRun {
 }
 
 // 2) Provide a fixer to wrap <li> into <ul>/<ol>
-namespace IFX_SPP\DocxHtml;
+namespace TSM_WP_SPP\DocxHtml;
 
 class ListHtmlFixer {
     /**

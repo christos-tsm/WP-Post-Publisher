@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Plugin Name: IFX Post Publisher
+ * Plugin Name: TSM WP Post Publisher
  * Description: Creates WordPress posts at custom times daily from a remote CSV, Excel, Google Sheet, or DOCX file, with manual run, detailed logging, and full DOCX→HTML conversion via PHPWord.
  * Version:     2.2.1
  * Author:      IronFX
@@ -13,8 +13,8 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-if (! defined('IFX_SPP_LOG_PATH')) {
-    define('IFX_SPP_LOG_PATH', plugin_dir_path(__FILE__) . 'spp.log');
+if (! defined('TSM_WP_SPP_LOG_PATH')) {
+    define('TSM_WP_SPP_LOG_PATH', plugin_dir_path(__FILE__) . 'spp.log');
 }
 
 require_once __DIR__ . '/vendor/autoload.php';
@@ -25,10 +25,10 @@ use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 use PhpOffice\PhpSpreadsheet\Reader\Xls  as XlsReader;
 use PhpOffice\PhpWord\IOFactory           as WordIO;
 
-class IFX_Post_Publisher {
-    const OPTION_URL   = 'ifx_spp_file_url';
-    const OPTION_TIMES = 'ifx_spp_times';
-    const CRON_HOOK    = 'ifx_spp_publish_posts';
+class TSM_WP_Post_Publisher {
+    const OPTION_URL   = 'TSM_WP_spp_file_url';
+    const OPTION_TIMES = 'TSM_WP_spp_times';
+    const CRON_HOOK    = 'TSM_WP_spp_publish_posts';
 
     public function __construct() {
         add_action('admin_menu', [$this, 'add_admin_menu']);
@@ -43,11 +43,11 @@ class IFX_Post_Publisher {
 	 * ------------------------------------------------------------------ */
 
     protected function log($message) {
-        $msg = '[' . date('Y-m-d H:i:s') . '] IFX_SPP: ' . $message;
+        $msg = '[' . date('Y-m-d H:i:s') . '] TSM_WP_SPP: ' . $message;
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log($msg);
         }
-        file_put_contents(IFX_SPP_LOG_PATH, $msg . "\n", FILE_APPEND);
+        file_put_contents(TSM_WP_SPP_LOG_PATH, $msg . "\n", FILE_APPEND);
     }
 
     /* --------------------------------------------------------------------
@@ -56,17 +56,17 @@ class IFX_Post_Publisher {
 
     public function add_admin_menu() {
         add_options_page(
-            'IFX Post Publisher',
+            'TSM_WP Post Publisher',
             'Post Publisher',
             'manage_options',
-            'ifx-spp-settings',
+            'TSM_WP-spp-settings',
             [$this, 'settings_page']
         );
     }
 
     public function register_settings() {
         register_setting(
-            'ifx-spp',
+            'TSM_WP-spp',
             self::OPTION_URL,
             [
                 'type'              => 'string',
@@ -75,7 +75,7 @@ class IFX_Post_Publisher {
         );
 
         register_setting(
-            'ifx-spp',
+            'TSM_WP-spp',
             self::OPTION_TIMES,
             [
                 'type'              => 'array',
@@ -106,20 +106,20 @@ class IFX_Post_Publisher {
         }
 
         /* Manual run --------------------------------------------------- */
-        if (isset($_POST['ifx_spp_run_now'])) {
-            check_admin_referer('ifx_spp_run_now_action');
+        if (isset($_POST['TSM_WP_spp_run_now'])) {
+            check_admin_referer('TSM_WP_spp_run_now_action');
             $this->log('Manual run triggered');
             $this->publish_posts();
             echo '<div class="updated"><p>Process completed. Check log for details.</p></div>';
         }
 ?>
         <div class="wrap">
-            <h1>IFX Post Publisher Settings</h1>
+            <h1>TSM WP Post Publisher Settings</h1>
 
             <form method="post" action="options.php">
                 <?php
-                settings_fields('ifx-spp');
-                do_settings_sections('ifx-spp-settings');
+                settings_fields('TSM_WP-spp');
+                do_settings_sections('TSM_WP-spp-settings');
                 ?>
                 <table class="form-table">
                     <tr>
@@ -151,12 +151,12 @@ class IFX_Post_Publisher {
             </form>
 
             <form method="post" style="margin-top:1em;">
-                <?php wp_nonce_field('ifx_spp_run_now_action'); ?>
-                <?php submit_button('Run Now', 'secondary', 'ifx_spp_run_now'); ?>
+                <?php wp_nonce_field('TSM_WP_spp_run_now_action'); ?>
+                <?php submit_button('Run Now', 'secondary', 'TSM_WP_spp_run_now'); ?>
             </form>
 
             <h2>Log File</h2>
-            <p><code><?php echo IFX_SPP_LOG_PATH; ?></code></p>
+            <p><code><?php echo TSM_WP_SPP_LOG_PATH; ?></code></p>
         </div>
 <?php
     }
@@ -349,7 +349,7 @@ class IFX_Post_Publisher {
         $rawHtml    = $htmlWriter->getContent();
 
         // Rebuild valid lists
-        return \IFX_SPP\DocxHtml\ListHtmlFixer::rebuildLists($rawHtml);
+        return \TSM_WP_SPP\DocxHtml\ListHtmlFixer::rebuildLists($rawHtml);
     }
 
     // private function process_lists_via_xml($xml_content) {
@@ -491,6 +491,6 @@ class IFX_Post_Publisher {
  * Bootstrapping
  * --------------------------------------------------------------------- */
 
-register_activation_hook(__FILE__, ['IFX_Post_Publisher', 'activation']);
-register_deactivation_hook(__FILE__, ['IFX_Post_Publisher', 'deactivation']);
-new IFX_Post_Publisher();
+register_activation_hook(__FILE__, ['TSM_WP_Post_Publisher', 'activation']);
+register_deactivation_hook(__FILE__, ['TSM_WP_Post_Publisher', 'deactivation']);
+new TSM_WP_Post_Publisher();

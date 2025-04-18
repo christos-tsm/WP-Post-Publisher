@@ -1,5 +1,5 @@
 {
-  "name": "ifx-post-publisher",
+  "name": "tsm-wp-post-publisher",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {

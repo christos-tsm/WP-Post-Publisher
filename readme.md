@@ -1,4 +1,4 @@
-# IFX Post Publisher
+# TSM WP Post Publisher
 
 **Version:** 2.2.1  
 **Requires PHP:** 7.2+  
@@ -6,9 +6,9 @@
 
 ## Description
 
-**IFX Post Publisher** is a WordPress plugin that automates the creation of posts from external data sources on a daily schedule. It supports CSV, XLSX, Google Sheets, and DOCX files, converting rich DOCX content (including images, lists, tables, and styling) into valid HTML using PHPWord. You can schedule up to two runs per day, trigger manual imports on demand, and review detailed logs of each operation.
+**TSM WP Post Publisher** is a WordPress plugin that automates the creation of posts from external data sources on a daily schedule. It supports CSV, XLSX, Google Sheets, and DOCX files, converting rich DOCX content (including images, lists, tables, and styling) into valid HTML using PHPWord. You can schedule up to two runs per day, trigger manual imports on demand, and review detailed logs of each operation.
 
-![IFX Post Publisher Settings](assets/screenshot-settings.png)
+![TSM WP Post Publisher Settings](assets/screenshot-settings.png)
 
 ## Features
 
@@ -29,7 +29,7 @@
 
 ## Installation
 
-1. **Download or Clone** this repository into your WordPress `wp-content/plugins/` directory.  
+1. **Download or Clone** this repository into your WordPress `TSM WP-content/plugins/` directory.  
 2. Run `composer install` in the plugin folder to install dependencies.  
 3. **Activate** the plugin through **Plugins** > **Installed Plugins** in your WordPress admin.  
 
@@ -39,7 +39,7 @@
 2. Enter the **File URL** (CSV, XLSX, Google Sheets, or DOCX).  
 3. Select up to two **Daily Run Times** (server time).  
 4. (Optional) Click **Run Now** to trigger an immediate import.  
-5. Review the log file at `wp-content/plugins/ifx-post-publisher/spp.log` for details.
+5. Review the log file at `TSM WP-content/plugins/TSM WP-post-publisher/spp.log` for details.
 
 ## Usage
 
@@ -54,7 +54,7 @@
 ## Customization
 
 - **List Conversion Logic:** The file `includes/docx-html-fixers.php` contains the custom `ListItemRun` override and HTML post-processor. You can extend it to handle custom list styles or deeper indentation.  
-- **Logging:** Modify `IFX_SPP_LOG_PATH` or the `log()` method in `IFX_Post_Publisher` to change log location or verbosity.
+- **Logging:** Modify `TSM WP_SPP_LOG_PATH` or the `log()` method in `TSM WP_Post_Publisher` to change log location or verbosity.
 
 ## Contributing
 
