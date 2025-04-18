@@ -8,8 +8,6 @@
 
 **TSM WP Post Publisher** is a WordPress plugin that automates the creation of posts from external data sources on a daily schedule. It supports CSV, XLSX, Google Sheets, and DOCX files, converting rich DOCX content (including images, lists, tables, and styling) into valid HTML using PHPWord. You can schedule up to two runs per day, trigger manual imports on demand, and review detailed logs of each operation.
 
-![TSM WP Post Publisher Settings](assets/screenshot-settings.png)
-
 ## Features
 
 - **Remote File Import**: Fetch data from CSV, XLSX, Google Sheets, or DOCX files via URL.  
