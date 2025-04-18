@@ -339,9 +339,6 @@ class IFX_Post_Publisher {
     /* --------------------------------------------------------------------
 	 * DOCX → HTML (rewritten, no stray code)
 	 * ------------------------------------------------------------------ */
-    /* --------------------------------------------------------------------
-     * DOCX → HTML Conversion with Local Mammoth.js
-     * ------------------------------------------------------------------ */
 
     protected function convert_docx_to_html($file_path) {
         $this->log('Starting DOCX conversion');
