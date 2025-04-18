@@ -18,6 +18,7 @@ if (! defined('IFX_SPP_LOG_PATH')) {
 }
 
 require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/includes/docx-html-fixers.php';
 
 use PhpOffice\PhpSpreadsheet\Reader\Csv  as CsvReader;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
@@ -337,109 +338,102 @@ class IFX_Post_Publisher {
     }
 
     /* --------------------------------------------------------------------
-	 * DOCX → HTML (rewritten, no stray code)
+	 * DOCX → HTML (using PHPWord + list fixer)
 	 * ------------------------------------------------------------------ */
-
     protected function convert_docx_to_html($file_path) {
         $this->log('Starting DOCX conversion');
 
-        // 1. Extract raw XML content for list processing
-        $zip = new ZipArchive();
-        if ($zip->open($file_path) !== true) {
-            $this->log('Failed to open DOCX file');
-            return '';
-        }
-
-        $xml_content = $zip->getFromName('word/document.xml');
-        $zip->close();
-
-        // 2. Process lists through XML
-        $list_data = $this->process_lists_via_xml($xml_content);
-        $this->log('List data extracted: ' . print_r($list_data, true));
-
-        // 3. Generate base HTML with PHPWord
-        $phpWord = WordIO::load($file_path);
+        // Load with PHPWord
+        $phpWord    = WordIO::load($file_path);
         $htmlWriter = new \PhpOffice\PhpWord\Writer\HTML($phpWord);
-        $html = $htmlWriter->getContent();
+        $rawHtml    = $htmlWriter->getContent();
 
-        // 4. Merge list structure into HTML
-        return $this->inject_list_structure($html, $list_data);
+        // Rebuild valid lists
+        return \IFX_SPP\DocxHtml\ListHtmlFixer::rebuildLists($rawHtml);
     }
 
-    private function process_lists_via_xml($xml_content) {
-        $dom = new DOMDocument();
-        $dom->loadXML($xml_content);
-        $xpath = new DOMXPath($dom);
-        $xpath->registerNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
+    // private function process_lists_via_xml($xml_content) {
+    //     $dom = new DOMDocument();
+    //     $dom->loadXML($xml_content);
+    //     $xpath = new DOMXPath($dom);
+    //     $xpath->registerNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
 
-        $lists = [];
-        $current_level = 0;
+    //     $lists = [];
+    //     $current_level = 0;
 
-        foreach ($xpath->query('//w:p') as $index => $paragraph) {
-            $is_list = $xpath->query('.//w:numPr', $paragraph)->length > 0;
-            $level = (int)$xpath->evaluate('number(.//w:ilvl/@w:val)', $paragraph) ?: 0;
-            $text = $this->get_paragraph_text($xpath, $paragraph);
+    //     foreach ($xpath->query('//w:p') as $index => $paragraph) {
+    //         $is_list = $xpath->query('.//w:numPr', $paragraph)->length > 0;
+    //         $level = (int)$xpath->evaluate('number(.//w:ilvl/@w:val)', $paragraph) ?: 0;
+    //         $text = $this->get_paragraph_text($xpath, $paragraph);
 
-            $lists[] = [
-                'index' => $index,
-                'is_list' => $is_list,
-                'level' => $level,
-                'text' => $text
-            ];
-        }
+    //         $lists[] = [
+    //             'index' => $index,
+    //             'is_list' => $is_list,
+    //             'level' => $level,
+    //             'text' => $text
+    //         ];
+    //     }
 
-        return $lists;
-    }
+    //     return $lists;
+    // }
 
-    private function inject_list_structure($html, $list_data) {
-        $dom = new DOMDocument();
-        @$dom->loadHTML(
-            mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'),
-            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
-        );
+    // private function inject_list_structure($html, $list_data) {
+    //     $dom = new DOMDocument();
+    //     @$dom->loadHTML(
+    //         mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'),
+    //         LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+    //     );
 
-        $xpath = new DOMXPath($dom);
-        $paragraphs = $xpath->query('//p');
-        $current_ul = null;
+    //     $xpath = new DOMXPath($dom);
+    //     $paragraphs = $xpath->query('//p');
+    //     $current_ul = null;
 
-        foreach ($paragraphs as $index => $p) {
-            if (!isset($list_data[$index])) continue;
+    //     foreach ($paragraphs as $index => $p) {
+    //         if (! isset($list_data[$index])) {
+    //             // No list metadata for this <p>; treat as normal text
+    //             if ($current_ul) {
+    //                 // close any open list
+    //                 $current_ul = null;
+    //             }
+    //             continue;
+    //         }
 
-            $list_item = $list_data[$index];
-            $this->log("Processing paragraph {$index}: " . print_r($list_item, true));
+    //         $item = $list_data[$index];
+    //         // strip off any leftover bullet characters
+    //         $clean_text = preg_replace('/^[•▪▶]\s*/u', '', $item['text']);
 
-            // Clean bullet characters and whitespace
-            $clean_text = preg_replace('/^[•▪▶]\s*/u', '', $list_item['text']);
+    //         if ($item['is_list']) {
+    //             // Start a new UL if needed
+    //             if (! $current_ul) {
+    //                 $current_ul = $dom->createElement('ul');
+    //                 $p->parentNode->insertBefore($current_ul, $p);
+    //             }
+    //             // Create and append the LI
+    //             $li = $dom->createElement('li', htmlspecialchars($clean_text));
+    //             $current_ul->appendChild($li);
+    //             // remove the original <p>
+    //             $p->parentNode->removeChild($p);
+    //         } elseif (
+    //             // Continuation lines often contain only digits, commas, parentheses, spaces
+    //             $current_ul
+    //             && preg_match('/^[\s\d\.,\(\)]+$/', $clean_text)
+    //         ) {
+    //             // Append to the last <li> instead of closing the list
+    //             $last_li = $current_ul->lastChild;
+    //             $last_li->nodeValue .= ' ' . trim($clean_text);
+    //             // remove that stray <p>
+    //             $p->parentNode->removeChild($p);
+    //         } else {
+    //             // genuinely non-list paragraph → close any open UL
+    //             $current_ul = null;
+    //         }
+    //     }
 
-            if ($list_item['is_list'] && !empty(trim($clean_text))) {
-                // Create new UL if no active list or after non-list item
-                if (!$current_ul) {
-                    $current_ul = $dom->createElement('ul');
-                    $p->parentNode->insertBefore($current_ul, $p);
-                    $this->log("Created new UL for list items");
-                }
-
-                // Create LI with cleaned text
-                $li = $dom->createElement('li', htmlspecialchars($clean_text));
-                $current_ul->appendChild($li);
-                $this->log("Added LI: $clean_text");
-
-                // Remove original paragraph
-                $p->parentNode->removeChild($p);
-            } else {
-                // Reset UL context for non-list items
-                if ($current_ul) {
-                    $this->log("Closing UL after non-list item");
-                    $current_ul = null;
-                }
-            }
-        }
-
-        // Final cleanup
-        $html = $dom->saveHTML();
-        $html = preg_replace('/<ul>\s*<li>:marker<\/li>\s*<\/ul>/i', '', $html); // Remove marker artifacts
-        return preg_replace('/<p>\s*<\/p>/', '', $html); // Remove empty paragraphs
-    }
+    //     // clean up any placeholder artifacts
+    //     $out = $dom->saveHTML();
+    //     $out = preg_replace('/<ul>\s*<li>:marker<\/li>\s*<\/ul>/i', '', $out);
+    //     return preg_replace('/<p>\s*<\/p>/', '', $out);
+    // }
 
     // Helper function with improved text extraction
     private function get_paragraph_text($xpath, $paragraph) {
