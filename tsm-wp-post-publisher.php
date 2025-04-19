@@ -312,6 +312,10 @@ class TSM_WP_Post_Publisher {
                 unlink($tmp2);
             }
 
+            $meta_title = $data['meta_title'] ?? '';
+
+            $meta_description = $data['meta_description'] ?? '';
+
             $postId = wp_insert_post(
                 [
                     'post_title'   => $title,
@@ -320,6 +324,9 @@ class TSM_WP_Post_Publisher {
                     'post_type'    => 'post',
                 ]
             );
+
+            update_post_meta($postId, '_yoast_wpseo_title', $meta_title);
+            update_post_meta($postId, '_yoast_wpseo_metadesc', $meta_description);
 
             if (is_wp_error($postId)) {
                 $this->log("Insert error for row $i: " . $postId->get_error_message());
