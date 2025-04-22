@@ -4,7 +4,7 @@
  * Plugin Name: TSM WP Post Publisher
  * Description: Creates WordPress posts at custom times daily from a remote CSV, Excel, Google Sheet, or DOCX file, with manual run, detailed logging, and full DOCX→HTML conversion via PHPWord.
  * Version:     2.2.1
- * Author:      IronFX
+ * Author:      Christos TSM
  * Requires PHP: 7.2
  * Requires at least: 5.6
  */
